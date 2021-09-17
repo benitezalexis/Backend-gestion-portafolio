@@ -2,6 +2,7 @@
 
 
 var Project=require('../models/project');
+var fs=require('fs');
 
 var controller= {
 	home: function(req, res){
@@ -92,6 +93,47 @@ var controller= {
 			});
 		});
 
+	},
+
+	uploadImage: function(req,res){
+		var projectId=req.params.id;
+		var fileName='Imagen no subida...';
+
+		if(req.files){
+			var filePath=req.files.image.path;
+			var fileSplit=filePath.split('\\');//guarda en arreglos los datos separados por 
+											   //el parametro propuesto
+			var fileName=fileSplit[1];
+			var extsplit=fileName.split('\.');
+			var fileExt=extsplit[1];
+
+
+			if(fileExt == 'png' || fileExt == 'jpg'|| fileExt == 'jpeg'|| fileExt == 'gif'){
+
+																     	//Devuelva el ultimo objeto guardado
+			Project.findByIdAndUpdate(projectId, {image: fileName},{new: true}, (err, projectUdated)=>{
+				if(err) return res.status(500).send({message: 'La imagen no se ha subido'});
+
+				if(!projectUdated) return res.status(404).send({message: 'El projecto no existe y no se ha asignado la imagen'});
+
+				return res.status(200).send({
+				project: projectUdated
+			});
+			});
+
+			}else{
+				fs.unlink(filePath,(err)=>{
+					return res.status(200).send({message: 'La extension no es valida'});
+				});
+			}
+			
+
+			
+		}else{
+			return res.status(200).send({
+				message: fileName
+			});
+		}
 	}
 
 };
